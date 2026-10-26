@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>UL Consulting &amp; Entrepreneurship Society</title>
+<noscript><meta http-equiv="refresh" content="0;url=https://ulwolves.ie/society/entrepreneurship"></noscript>
+<style>body{font-family:system-ui,sans-serif;display:grid;place-items:center;min-height:100vh;margin:0;color:#333}</style>
+</head>
+<body>
+<p>Taking you to the society page&hellip; <a href="https://ulwolves.ie/society/entrepreneurship">tap here</a> if nothing happens.</p>
+<script>
+(function () {
+  var DEST = "https://ulwolves.ie/society/entrepreneurship";
+  var API = "https://abacus.jasoncameron.dev/hit/tesh2707-ulces/";
+  // Optional ?s=poster-library to tag which QR/placement was scanned
+  var src = (new URLSearchParams(location.search).get("s") || "").toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 30);
+  var day = new Date().toISOString().slice(0, 10);
+  var keys = ["scans-total", "scans-" + day];
+  if (src) keys.push("src-" + src);
+  var go = function () { location.replace(DEST); };
+  var pending = keys.map(function (k) { return fetch(API + k, { keepalive: true, cache: "no-store" }).catch(function () {}); });
+  Promise.race([Promise.all(pending), new Promise(function (r) { setTimeout(r, 1500); })]).then(go, go);
+})();
+</script>
+</body>
+</html>

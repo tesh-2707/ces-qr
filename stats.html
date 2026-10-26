@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>QR Scan Stats</title>
+<style>
+:root{--bg:#f7f7f5;--card:#fff;--ink:#1d1d1f;--mute:#6b6b6b;--accent:#1f6feb;--line:#e4e4e0}
+@media (prefers-color-scheme:dark){:root{--bg:#141414;--card:#1e1e1e;--ink:#eee;--mute:#9a9a9a;--accent:#58a6ff;--line:#2e2e2e}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,sans-serif}
+main{max-width:680px;margin:0 auto;padding:24px 16px}
+h1{font-size:1.3rem;margin:0 0 4px}
+.sub{color:var(--mute);margin:0 0 20px;font-size:.9rem}
+.row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
+.tile b{display:block;font-size:1.8rem}
+.tile span{color:var(--mute);font-size:.8rem}
+.tile input{width:100%;font-size:1.6rem;font-weight:700;border:none;background:transparent;color:var(--ink);padding:0}
+h2{font-size:1rem;margin:20px 0 8px}
+.bars{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
+.bar{display:grid;grid-template-columns:90px 1fr 40px;gap:8px;align-items:center;font-size:.85rem;margin:4px 0}
+.bar i{display:block;height:12px;background:var(--accent);border-radius:3px}
+.bar em{font-style:normal;text-align:right}
+.note{color:var(--mute);font-size:.8rem;margin-top:16px}
+</style>
+</head>
+<body>
+<main>
+<h1>QR scans vs sign-ups</h1>
+<p class="sub">UL Consulting &amp; Entrepreneurship Society</p>
+<div class="row">
+  <div class="tile"><b id="total">–</b><span>Total scans</span></div>
+  <div class="tile"><input id="signups" type="number" min="0" placeholder="0"><span>New members (type from ulwolves)</span></div>
+  <div class="tile"><b id="rate">–</b><span>Scan → sign-up</span></div>
+</div>
+<h2>Scans per day (last 21 days)</h2>
+<div class="bars" id="days">Loading…</div>
+<div id="srcwrap" hidden><h2>By placement</h2><div class="bars" id="srcs"></div></div>
+<p class="note">Sign-ups happen on ulwolves.ie, so take the new-member count from your committee members list (members joined since the QR went up). It's saved in this browser only.</p>
+</main>
+<script>
+var API = "https://abacus.jasoncameron.dev/get/tesh2707-ulces/";
+var SRCS = []; // add placement tags here if you print tagged QRs, e.g. ["poster-library","flyer"]
+function get(k){return fetch(API+k,{cache:"no-store"}).then(function(r){return r.ok?r.json():{value:0}}).then(function(j){return j.value||0}).catch(function(){return 0})}
+function bars(el,rows){var max=Math.max(1,Math.max.apply(null,rows.map(function(r){return r[1]})));
+  el.innerHTML=rows.map(function(r){return '<div class="bar"><span>'+r[0]+'</span><i style="width:'+(r[1]/max*100)+'%"></i><em>'+r[1]+'</em></div>'}).join("")}
+var total=0,inp=document.getElementById("signups");
+try{inp.value=localStorage.getItem("signups")||""}catch(e){}
+function rate(){var s=+inp.value||0;document.getElementById("rate").textContent=total?Math.round(s/total*100)+"%":"–";try{localStorage.setItem("signups",inp.value)}catch(e){}}
+inp.addEventListener("input",rate);
+get("scans-total").then(function(v){total=v;document.getElementById("total").textContent=v;rate()});
+var days=[];for(var i=20;i>=0;i--){days.push(new Date(Date.now()-i*864e5).toISOString().slice(0,10))}
+Promise.all(days.map(function(d){return get("scans-"+d)})).then(function(v){bars(document.getElementById("days"),days.map(function(d,i){return[d.slice(5),v[i]]}))});
+if(SRCS.length){document.getElementById("srcwrap").hidden=false;Promise.all(SRCS.map(function(s){return get("src-"+s)})).then(function(v){bars(document.getElementById("srcs"),SRCS.map(function(s,i){return[s,v[i]]}))})}
+</script>
+</body>
+</html>
